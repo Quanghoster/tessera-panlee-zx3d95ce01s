@@ -1,0 +1,51 @@
+# ESP Screens - a Panlee ZX3D95CE01S-TR-V12 built from a clone of this repository.
+# This is a local override file that includes the shared packages and adds an
+# onboard HTU21D/SHT21 temperature and humidity sensor.
+
+substitutions:
+  FONT_DIR: "../fonts"
+
+packages:
+  core: !include ../packages/core.yaml
+  board: !include ../packages/boards/panlee-zx3d95ce01s.yaml
+  hotspot: !include ../packages/features/hotspot.yaml
+
+external_components:
+  - source:
+      type: local
+      path: ../components
+    components: [smart_display]
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Mains-powered panel: no modem sleep, so HA updates and OTA arrive without beacon latency.
+  power_save_mode: none
+  ap:
+    ssid: "Tessera ${DEVICE_FRIENDLY_NAME}"
+    password: !secret ap_password
+
+captive_portal:
+
+# Onboard HTU21D / SHT21 temperature and humidity sensor.
+# Assumed to be on the same I2C bus as the touch controller (GPIO15/6).
+# Default I2C address for HTU21D/SHT21 is 0x40.
+sensor:
+  - platform: htu21d
+    model: sht21
+    temperature:
+      name: "Temperature"
+      id: air_temperature
+    humidity:
+      name: "Humidity"
+      id: relative_humidity
+    heater:
+      name: "Heater"
